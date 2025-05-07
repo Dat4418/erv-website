@@ -10,9 +10,20 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@lourenci/react-kanban": "^2.1.0",
     "@tailwindcss/vite": "^4.0.17",
+    "@tiptap/extension-image": "^2.11.7",
+    "@tiptap/extension-link": "^2.11.7",
+    "@tiptap/react": "^2.11.7",
+    "@tiptap/starter-kit": "^2.11.7",
+    "devextreme": "24.2.6",
+    "devextreme-react": "24.2.6",
+    "jwt-decode": "^4.0.0",
+    "lucide-react": "^0.484.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-router-dom": "^7.4.0",
+    "react-trello": "^2.2.11",
     "tailwind": "^4.0.0"
   },
   "devDependencies": {
