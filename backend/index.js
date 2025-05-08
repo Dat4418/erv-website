@@ -7,7 +7,6 @@ const multer = require("multer");
 const checkRole = require("./middleware/roleMiddleware");
 
 const app = express();
-const PORT = process.env.PORT || 3001;
 
 // --- Prepare Upload Directories ---
 const uploadsDir = path.join(__dirname, "uploads");
@@ -52,7 +51,6 @@ const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 const eventRoutes = require("./routes/eventRoutes");
 const blogRoutes = require("./routes/blogRoutes");
-const projectRoutes = require("./routes/projectRoutes");
 const authMiddleware = require("./middleware/authMiddleware");
 
 // --- API Routes ---
@@ -60,7 +58,6 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/blogs", blogRoutes);
-app.use("/api/projects", projectRoutes);
 
 // --- Download Endpoints ---
 // GET Download (für alle User)
@@ -126,59 +123,19 @@ app.post("/api/uploads", editorUpload.single("image"), (req, res) => {
   res.status(200).json({ imageUrl });
 });
 
-// --- To-Do Manager Endpoints (in-memory store) ---
-let projects = [];
-
-// Get all projects
-app.get("/api/projects", authMiddleware, (req, res) => {
-  res.json(projects);
+// -- Frontend Build --
+const frontendDist = path.join(__dirname, "../frontend/dist");
+app.use(express.static(frontendDist));
+app.get("/*", (req, res) => {
+  res.sendFile(path.join(frontendDist, "index.html"));
 });
-
-// Create project
-app.post("/api/projects", authMiddleware, (req, res) => {
-  const { name } = req.body;
-  if (!name) return res.status(400).json({ error: "Projektname erforderlich" });
-  const newProject = { id: Date.now().toString(), name, todos: [] };
-  projects.push(newProject);
-  res.status(201).json(newProject);
-});
-
-// Add todo
-app.post("/api/projects/:projectId/todos", authMiddleware, (req, res) => {
-  const { projectId } = req.params;
-  const { text } = req.body;
-  const project = projects.find((p) => p.id === projectId);
-  if (!project)
-    return res.status(404).json({ error: "Projekt nicht gefunden" });
-  if (!text) return res.status(400).json({ error: "Todo-Text erforderlich" });
-  const newTodo = { id: Date.now().toString(), text, members: [] };
-  project.todos.push(newTodo);
-  res.status(201).json(newTodo);
-});
-
-// Toggle join/leave todo
-app.post(
-  "/api/projects/:projectId/todos/:todoId/join",
-  authMiddleware,
-  (req, res) => {
-    const { projectId, todoId } = req.params;
-    const userName = req.user.username;
-    const project = projects.find((p) => p.id === projectId);
-    if (!project)
-      return res.status(404).json({ error: "Projekt nicht gefunden" });
-    const todo = project.todos.find((t) => t.id === todoId);
-    if (!todo) return res.status(404).json({ error: "Todo nicht gefunden" });
-    const idx = todo.members.indexOf(userName);
-    if (idx === -1) todo.members.push(userName);
-    else todo.members.splice(idx, 1);
-    res.json({ id: todo.id, members: todo.members });
-  }
-);
 
 // --- Health Check ---
 app.get("/health", (req, res) => res.send("OK"));
 
 // --- Start Server ---
+const PORT = process.env.PORT || 3001;
+
 app.listen(PORT, () => {
   console.log(`Server läuft auf http://localhost:${PORT}`);
 });
